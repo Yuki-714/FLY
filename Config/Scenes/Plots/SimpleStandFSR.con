@@ -1,6 +1,6 @@
-vp SimpleStandFSRPressure 500 0 6
+vp SimpleStandFSRPressure 2500 0 6
 vpd SimpleStandFSRPressure module:SimpleStandEngine:fsr:leftPressure blue left
 vpd SimpleStandFSRPressure module:SimpleStandEngine:fsr:rightPressure red right
 
-vp SimpleStandFSRSupport 500 -1 1
+vp SimpleStandFSRSupport 2500 -0.1 0.1
 vpd SimpleStandFSRSupport module:SimpleStandEngine:fsr:supportRatio green ratio

@@ -259,11 +259,11 @@ minTotalPressure = 0.5;
 可在 SimRobot 控制台中创建两个绘图窗口：
 
 ```text
-vp FSRPressure 500 0 6
+vp FSRPressure 2500 0 6
 vpd FSRPressure module:SimpleStandEngine:fsr:leftPressure blue left
 vpd FSRPressure module:SimpleStandEngine:fsr:rightPressure red right
 
-vp FSRSupportRatio 500 -1 1
+vp FSRSupportRatio 2500 -0.1 0.1
 vpd FSRSupportRatio module:SimpleStandEngine:fsr:supportRatio green ratio
 ```
 
@@ -405,3 +405,22 @@ IMU 倾角仍在安全范围内
 - [ ] 压力变化方向通过验收
 - [ ] 保存曲线证据
 - [x] 本阶段不抬脚、不接入 RL
+
+## 14. 阶段 D 试验记录
+
+### 14.1 横向位移 5 mm
+
+- 左右脚压力均约为 2 kg，总压力稳定；
+- 左右压力变化方向相反，滤波后曲线平滑；
+- `supportRatio` 约在 `-0.03` 到 `+0.025` 之间变化；
+- 正负方向和回零表现正确，证明 FSR 测量链路有效；
+- 最大承重脚占比只有约 51.5%，不足以进入抬脚阶段。
+
+### 14.2 下一轮：横向位移 10 mm
+
+- 将 `weightShiftAmplitude` 从 5 mm 提高到 10 mm；
+- 双脚继续固定，不改变 `standHeight`、PD 参数和移动周期；
+- 曲线缓冲区提高到 2500 个采样点，可覆盖至少三个完整周期；
+- `supportRatio` 显示范围缩小到 `[-0.1, 0.1]`；
+- 如果机器人出现明显倾斜、脚底滑动或曲线振荡，应立即停止并恢复到 5 mm；
+- 本轮仍只采集数据，不允许抬脚。
