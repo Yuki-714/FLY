@@ -13,12 +13,14 @@
 #include "Representations/Infrastructure/FrameInfo.h"
 #include "Representations/Infrastructure/JointAngles.h"
 #include "Representations/Infrastructure/JointRequest.h"
+#include "Representations/Infrastructure/SensorData/FsrSensorData.h"
 #include "Representations/Infrastructure/SensorData/KeyStates.h"
 #include "Representations/Infrastructure/SensorData/RawInertialSensorData.h"
 
 MODULE(SimpleStandEngine,
 {,
   REQUIRES(FrameInfo),
+  REQUIRES(FsrSensorData),
   REQUIRES(JointAngles),
   REQUIRES(JointLimits),
   REQUIRES(KeyStates),
@@ -45,6 +47,8 @@ MODULE(SimpleStandEngine,
     (float) rollKd, /**< Ankle roll correction per radian/s of roll velocity, in seconds. */
     (float) imuLowPassRatio, /**< Previous-sample weight of the IMU low-pass filter. */
     (Angle) maxAnkleCorrection, /**< Absolute limit for each ankle balance correction. */
+    (float) fsrLowPassRatio, /**< Previous-sample weight of the FSR low-pass filter. */
+    (float) minTotalPressure, /**< Minimum combined pressure in kg for a valid support ratio. */
     (bool) weightShiftEnabled, /**< Move the torso sideways while both feet remain fixed. */
     (float) weightShiftAmplitude, /**< Maximum lateral torso shift in mm. */
     (unsigned) weightShiftPhaseDuration, /**< Duration of each 0-to-side or side-to-0 phase in ms. */
@@ -75,6 +79,7 @@ class SimpleStandEngine : public SimpleStandEngineBase
   bool calculateStandingPose(float torsoShiftY, JointAngles& targetAngles) const;
   float calculateTorsoShiftY() const;
   void setStandingUpperBodyPose(JointAngles& targetAngles) const;
+  void updateFootPressure();
   void resetBalanceFilter();
   void applyAnkleBalance(JointRequest& jointRequest);
   void writeRelaxedRequest(JointRequest& jointRequest) const;
@@ -88,6 +93,12 @@ class SimpleStandEngine : public SimpleStandEngineBase
   bool chestPressedLastFrame = false;
   bool standingPoseValid = false;
   float currentTorsoShiftY = 0.f;
+  float filteredLeftPressure = 0.f;
+  float filteredRightPressure = 0.f;
+  float supportRatio = 0.f;
+  bool fsrInitialized = false;
+  bool fsrValid = false;
+  bool fsrErrorReported = false;
   Vector2f filteredTorsoAngle = Vector2f::Zero();
   Vector2f filteredGyro = Vector2f::Zero();
   JointAngles startAngles;

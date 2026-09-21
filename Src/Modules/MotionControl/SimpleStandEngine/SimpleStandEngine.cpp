@@ -38,6 +38,9 @@ void SimpleStandEngine::update(JointRequest& jointRequest)
   DECLARE_PLOT("module:SimpleStandEngine:balance:torsoRoll");
   DECLARE_PLOT("module:SimpleStandEngine:balance:anklePitchCorrection");
   DECLARE_PLOT("module:SimpleStandEngine:balance:ankleRollCorrection");
+  DECLARE_PLOT("module:SimpleStandEngine:fsr:leftPressure");
+  DECLARE_PLOT("module:SimpleStandEngine:fsr:rightPressure");
+  DECLARE_PLOT("module:SimpleStandEngine:fsr:supportRatio");
   DECLARE_PLOT("module:SimpleStandEngine:weightShift:torsoY");
 
   if(!initialized)
@@ -46,6 +49,8 @@ void SimpleStandEngine::update(JointRequest& jointRequest)
     stateStartTime = theFrameInfo.time;
     captureCurrentPose();
   }
+
+  updateFootPressure();
 
   const bool chestPressed = theKeyStates.pressed[KeyStates::chest];
   const bool chestPressedThisFrame = chestPressed && !chestPressedLastFrame;
@@ -257,6 +262,66 @@ void SimpleStandEngine::setStandingUpperBodyPose(JointAngles& targetAngles) cons
   targetAngles.angles[Joints::rWristYaw] = standingWristYaw;
   targetAngles.angles[Joints::lHand] = 0.f;
   targetAngles.angles[Joints::rHand] = 0.f;
+}
+
+void SimpleStandEngine::updateFootPressure()
+{
+  float rawPressures[Legs::numOfLegs] = {};
+  bool allSensorsValid = true;
+
+  FOREACH_ENUM(Legs::Leg, leg)
+  {
+    FOREACH_ENUM(FsrSensors::FsrSensor, sensor)
+    {
+      const float pressure = theFsrSensorData.pressures[leg][sensor];
+      if(pressure == SensorData::off || !std::isfinite(pressure) || pressure < 0.f)
+      {
+        allSensorsValid = false;
+        break;
+      }
+      rawPressures[leg] += pressure;
+    }
+  }
+
+  if(!allSensorsValid)
+  {
+    fsrValid = false;
+    supportRatio = 0.f;
+    if(!fsrErrorReported)
+    {
+      ANNOTATION("SimpleStandEngine", "Invalid FSR data; keeping the previous filtered pressures.");
+      fsrErrorReported = true;
+    }
+  }
+  else
+  {
+    fsrErrorReported = false;
+    const float keep = std::clamp(fsrLowPassRatio, 0.f, 1.f);
+    const float useNew = 1.f - keep;
+
+    if(!fsrInitialized)
+    {
+      filteredLeftPressure = rawPressures[Legs::left];
+      filteredRightPressure = rawPressures[Legs::right];
+      fsrInitialized = true;
+    }
+    else
+    {
+      filteredLeftPressure = keep * filteredLeftPressure + useNew * rawPressures[Legs::left];
+      filteredRightPressure = keep * filteredRightPressure + useNew * rawPressures[Legs::right];
+    }
+
+    const float totalPressure = filteredLeftPressure + filteredRightPressure;
+    const float contactThreshold = std::max(minTotalPressure, 0.001f);
+    fsrValid = totalPressure >= contactThreshold;
+    supportRatio = fsrValid ?
+                     std::clamp((filteredLeftPressure - filteredRightPressure) / totalPressure, -1.f, 1.f) :
+                     0.f;
+  }
+
+  PLOT("module:SimpleStandEngine:fsr:leftPressure", filteredLeftPressure);
+  PLOT("module:SimpleStandEngine:fsr:rightPressure", filteredRightPressure);
+  PLOT("module:SimpleStandEngine:fsr:supportRatio", supportRatio);
 }
 
 float SimpleStandEngine::calculateTorsoShiftY() const

@@ -267,6 +267,12 @@ vp FSRSupportRatio 500 -1 1
 vpd FSRSupportRatio module:SimpleStandEngine:fsr:supportRatio green ratio
 ```
 
+项目同时提供了可直接加载的曲线配置：
+
+```text
+call Plots/SimpleStandFSR.con
+```
+
 压力图纵轴上限 `6` 只是 NAO 仿真的初始显示范围，可根据实际曲线调整；不能把绘图范围当作控制阈值。
 
 ## 8. 预期时序
@@ -381,22 +387,21 @@ IMU 倾角仍在安全范围内
 
 ## 13. 完成清单
 
-- [ ] `SimpleStandEngine` 引入并依赖 `FsrSensorData`
-- [ ] `threads.cfg` 注册 FSR 数据提供者
-- [ ] 读取左脚四个压力传感器
-- [ ] 读取右脚四个压力传感器
-- [ ] 检查八个输入值有效性
-- [ ] 计算左右脚原始总压力
-- [ ] 实现左右脚压力低通滤波
-- [ ] 实现最小总压力保护
-- [ ] 计算 `supportRatio`
-- [ ] 输出 `leftPressure`
-- [ ] 输出 `rightPressure`
-- [ ] 输出 `supportRatio`
-- [ ] 构建通过
-- [ ] 场景启动通过
+- [x] `SimpleStandEngine` 引入并依赖 `FsrSensorData`
+- [x] `threads.cfg` 注册 FSR 数据提供者
+- [x] 读取左脚四个压力传感器
+- [x] 读取右脚四个压力传感器
+- [x] 检查八个输入值有效性
+- [x] 计算左右脚原始总压力
+- [x] 实现左右脚压力低通滤波
+- [x] 实现最小总压力保护
+- [x] 计算 `supportRatio`
+- [x] 输出 `leftPressure`
+- [x] 输出 `rightPressure`
+- [x] 输出 `supportRatio`
+- [x] 构建通过
+- [x] 场景启动通过
 - [ ] 连续观察至少三个左右移动周期
 - [ ] 压力变化方向通过验收
 - [ ] 保存曲线证据
-- [ ] 本阶段不抬脚、不接入 RL
-
+- [x] 本阶段不抬脚、不接入 RL
