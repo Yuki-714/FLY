@@ -7,6 +7,7 @@
 - `SimpleStandEngine`：零刚度、保持当前姿态、平滑进入固定站姿、稳定保持。
 - `Config/Scenarios/SimpleStand`：只加载站立所需模块的独立场景。
 - `Config/Scenes/SimpleStand.ros3`：NAO 的站立验证仿真。
+- `SimpleStandEngine/FSRSupportDetectionPlan.md`：双脚压力检测、滤波和重心转移验收规划。
 
 已保留的集成边界：
 
